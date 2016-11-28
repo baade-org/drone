@@ -1,29 +1,32 @@
-package org.baade.drone.sift.img;
+package org.baade.drone.sift.gauss.buff;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-public class Image implements IImage {
+import org.baade.drone.sift.gauss.IGaussTemplate;
+import org.baade.drone.sift.img.ImageFormat;
+import org.baade.drone.sift.img.ImageUtils;
+
+public class ImageGaussBuff implements IImageGaussBuff{
+
+	private ImagePixelGaussBuff[][] pixelGaussBuffs;
 
 	private BufferedImage bufImg;
 	private int width;
 	private int height;
 
-	private int[][] datas;
-	
+	private IGaussTemplate gaussTemplate;
 
-	public Image(BufferedImage bufImg) {
-		if (bufImg != null) {
-			init(bufImg);
-		}
+	public ImageGaussBuff(IGaussTemplate gaussTemplate, BufferedImage bufImg) {
+		this.gaussTemplate = gaussTemplate;
+		init(bufImg);
 	}
 
-	@Override
 	public void init(BufferedImage bufImg) {
 		this.width = bufImg.getWidth();
 		this.height = bufImg.getHeight();
-		datas = new int[this.width][this.height];
-		this.bufImg = new BufferedImage(width, height, bufImg.getType()) ;
+		pixelGaussBuffs = new ImagePixelGaussBuff[this.width][this.height];
+		this.bufImg = new BufferedImage(width, height, bufImg.getType());
 		initDatas(bufImg);
 	}
 
@@ -31,10 +34,16 @@ public class Image implements IImage {
 		for (int x = 0; x < this.width; x++) {
 			for (int y = 0; y < this.height; y++) {
 				int rgb = srcBufImg.getRGB(x, y);
-				datas[x][y] = rgb;
+				pixelGaussBuffs[x][y] = new ImagePixelGaussBuff(this.gaussTemplate, rgb);
 				this.bufImg.setRGB(x, y, rgb);
+				System.out.println( x + ":" + y);
 			}
 		}
+	}
+
+	@Override
+	public ImagePixelGaussBuff getImagePixelGaussBuff(int x, int y) {
+		return pixelGaussBuffs[x][y];
 	}
 
 	@Override
@@ -60,42 +69,31 @@ public class Image implements IImage {
 
 	@Override
 	public int getRGB(int x, int y) {
-		// return datas[x][y];
 		return this.bufImg.getRGB(x, y);
 	}
 
 	@Override
 	public void setRGB(int x, int y, int rgb) {
-		// datas[x][y] = rgb;
 		this.bufImg.setRGB(x, y, rgb);
 	}
 
 	@Override
 	public void wirte(String outDir, int octaveNum, int gaussLevel) {
-		// BufferedImage targetImage = new BufferedImage(width, height,
-		// BufferedImage.TYPE_INT_RGB);
-		// for (int x = 0; x < this.width; x++) {
-		// for (int y = 0; y < this.height; y++) {
-		// int rgb = datas[x][y];
-		// // rgb = (rgb << 16) | (rgb << 8) | rgb;
-		//
-		// // rgb = (rgb << 16);
-		// targetImage.setRGB(x, y, rgb);
-		// }
-		// }
 		String name = octaveNum + "_" + gaussLevel + ".jpg";
 		String outFile = outDir + "/" + name;
 		try {
 			ImageUtils.write(this.bufImg, outFile);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 
 	@Override
 	public int[][] getDatas() {
-		return datas;
+		// TODO Auto-generated method stub
+		return null;
 	}
+
 
 }

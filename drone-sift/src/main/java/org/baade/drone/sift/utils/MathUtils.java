@@ -5,10 +5,10 @@ import org.baade.drone.sift.Const;
 public class MathUtils {
 
 	public static double gaussian(int xDistance, int yDistance, double sigma) {
-		double a = 1.0 / (2 * Math.PI * Math.pow(sigma, 2));
+//		double a = 1.0 / (2 * Math.PI * Math.pow(sigma, 2));
 		double b = (Math.pow(xDistance, 2) + Math.pow(yDistance, 2)) / (2 * sigma * sigma);
-		double c = Math.exp(-b);
-		return a * c;
+		double c = Math.exp(-b) / (2 * Math.PI * Math.pow(sigma, 2));
+		return c;
 	}
 	
 	public static double getSigma(int octaveNum, int leveNum) {

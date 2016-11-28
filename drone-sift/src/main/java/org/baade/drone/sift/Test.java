@@ -3,7 +3,14 @@ package org.baade.drone.sift;
 public class Test {
 
 	public static void main(String[] args) {
-		radius1();
+//		radius1();
+		double atanV = Math.tan(1.0/1);
+		System.out.println(atanV);
+		double cosv = Math.acos(atanV);
+		System.out.println(cosv);
+		
+		double pww = Math.pow(2, 1.0/2);
+		System.out.println(pww);
 	}
 
 	private static void radius1() {

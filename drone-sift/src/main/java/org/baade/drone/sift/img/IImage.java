@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage;
  *
  */
 public interface IImage {
+	
+	public void init(BufferedImage bufImg);
 
 	
 	public BufferedImage getBufImg();
@@ -23,7 +25,6 @@ public interface IImage {
 	public void setRGB(int x, int y, int rgb);
 	
 	public void wirte(String outDir, int octaveNum, int gaussLevel);
-	
 	
 	public int[][] getDatas();
 }
