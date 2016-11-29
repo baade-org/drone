@@ -9,7 +9,7 @@ public class ImageGrayConverter implements IImageConverter {
 
 	@Override
 	public IImage convert(IImage src, IImage dist) {
-		BufferedImage bufferedImage = src.getBufImg();
+		BufferedImage bufferedImage = src.getBuffImg();
 		BufferedImage grayBufImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(),
 				bufferedImage.getType());
 		for (int i = 0; i < bufferedImage.getWidth(); i++) {

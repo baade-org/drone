@@ -14,29 +14,33 @@ import org.baade.drone.sift.converter.ImageGaussConverter;
 import org.baade.drone.sift.converter.ImageGrayConverter;
 import org.baade.drone.sift.converter.ImageZoomConverter;
 import org.baade.drone.sift.gauss.IGaussTemplate;
-import org.baade.drone.sift.gauss.buff.ImageGaussBuff;
 import org.baade.drone.sift.img.IImage;
+import org.baade.drone.sift.img.IImageGauss;
 import org.baade.drone.sift.img.Image;
+import org.baade.drone.sift.img.ImageGauss;
+import org.baade.drone.sift.pyramid.gauss.GaussOctave;
+import org.baade.drone.sift.pyramid.gauss.GaussPyramid;
+import org.baade.drone.sift.pyramid.gauss.IGaussOctave;
+import org.baade.drone.sift.pyramid.gauss.IGaussPyramid;
 import org.baade.drone.sift.utils.MathUtils;
 
-public class GaussPyramidBuilder implements IGaussPyramidBuilder {
+public class PyramidBuilder implements IPyramidBuilder {
 
 	private IImageConverter grayConverter;
 	private IImageGaussConverter gaussConverter;
 	private IImageZoomConverter zoomConverter;
 
-	public GaussPyramidBuilder() {
+	public PyramidBuilder() {
 		grayConverter = new ImageGrayConverter();
 		gaussConverter = new ImageGaussConverter();
 		zoomConverter = new ImageZoomConverter();
 	}
 
 	@Override
-	public IGaussPyramid build(IImage src) {
+	public BigPyramid build(IImage src) {
 		IGaussPyramid gaussPyramid = new GaussPyramid(src);
-
 		IImage doubleImg = zoomConverter.convert(src);
-//		doubleImg = grayConverter.convert(doubleImg, doubleImg);
+		doubleImg = grayConverter.convert(doubleImg, doubleImg);
 		int gaussLevelCount = Const.GAUSS_LEVEL_COUNT + 3;
 
 		int index = 0;
@@ -44,32 +48,25 @@ public class GaussPyramidBuilder implements IGaussPyramidBuilder {
 		IImage imgTemp = doubleImg;
 		int currentMinSize = getMinSize(imgTemp);
 		while (true) {
+			IGaussOctave pyramidOctave = new GaussOctave(imgTemp);
+			for (int i = 0; i < gaussLevelCount; i++) {
+				double sigma = MathUtils.getSigma(index, i);
+				IGaussTemplate gaussTemp = gaussConverter.buildTemplate(sigma);
+				IImageGauss imgGauss = new ImageGauss(gaussTemp, imgTemp.getWidth(), imgTemp.getHeight());
+				
+				pyramidOctave.add(i, imgGauss);
+
+			}
+			gaussPyramid.add(index++, pyramidOctave);
+			
 			currentMinSize = getMinSize(imgTemp);
 			if(currentMinSize <= Const.IMG_MIN_WIDTH_OR_HEIGHT_SIZE){
 				break;
 			}
-			
-			IPyramidOctave pyramidOctave = new PyramidOctave();
-			
-			for (int i = 0; i < gaussLevelCount; i++) {
-				double sigma = MathUtils.getSigma(index, i);
-				IGaussTemplate gaussTemp = gaussConverter.buildTemplate(sigma);
-//				IImage distImg = new Image(imgTemp.getBufImg());
-				
-				IImage distImg = new ImageGaussBuff(gaussTemp, imgTemp.getBufImg());
-				
-				gaussConverter.buildGaussImg(imgTemp, distImg, sigma);
-				pyramidOctave.put(i, distImg);
-
-//				imgTemp = distImg;
-				System.out.println(distImg);
-			}
-			gaussPyramid.put(index++, pyramidOctave);
-			
 			imgTemp = zoomConverter.down(imgTemp);
 		}
-
-		return gaussPyramid;
+		BigPyramid bp = gaussConverter.buildGaussPyramid(gaussPyramid);
+		return bp;
 	}
 
 	private int getMinSize(IImage img) {
@@ -79,7 +76,7 @@ public class GaussPyramidBuilder implements IGaussPyramidBuilder {
 	}
 
 	@Override
-	public IGaussPyramid build(String imgPath) {
+	public BigPyramid build(String imgPath) {
 		try {
 			BufferedImage bufImg = ImageIO.read(new File(imgPath));
 			IImage sourceImage = new Image(bufImg);

@@ -2,10 +2,17 @@ package org.baade.drone.sift.converter;
 
 import org.baade.drone.sift.gauss.GaussTemplate;
 import org.baade.drone.sift.gauss.IGaussTemplate;
-import org.baade.drone.sift.gauss.buff.IImageGaussBuff;
-import org.baade.drone.sift.gauss.buff.ImagePixelGaussBuff;
-import org.baade.drone.sift.gauss.buff.RGBBuff;
 import org.baade.drone.sift.img.IImage;
+import org.baade.drone.sift.img.IImageDog;
+import org.baade.drone.sift.img.IImageGauss;
+import org.baade.drone.sift.img.ImageDog;
+import org.baade.drone.sift.pyramid.BigPyramid;
+import org.baade.drone.sift.pyramid.dog.DogOctave;
+import org.baade.drone.sift.pyramid.dog.DogPyramid;
+import org.baade.drone.sift.pyramid.dog.IDogOctave;
+import org.baade.drone.sift.pyramid.dog.IDogPyramid;
+import org.baade.drone.sift.pyramid.gauss.IGaussOctave;
+import org.baade.drone.sift.pyramid.gauss.IGaussPyramid;
 import org.baade.drone.sift.utils.MathUtils;
 
 public class ImageGaussConverter implements IImageGaussConverter {
@@ -17,23 +24,13 @@ public class ImageGaussConverter implements IImageGaussConverter {
 
 	@Override
 	public IGaussTemplate buildTemplate(double sigma) {
-//		int dimension = 2 * (int)Math.round(sigma) + 1; // 保证高斯模板是奇数
-		int dimension = 3; // 保证高斯模板是奇数
-		int radius = 2;
-//		IGaussTemplate gaussTemp = new GaussArrayTemplate(dimension);
-		
+		// int dimension = 2 * (int)Math.round(sigma) + 1; // 保证高斯模板是奇数
+//		int dimension = 3; // 保证高斯模板是奇数
+		int radius = 1;
+
 		IGaussTemplate gaussTemp = new GaussTemplate(radius);
 		double totalWeightValue = 0.0;
-//		for (int x = 0; x < dimension; x++) {
-//			for (int y = 0; y < dimension; y++) {
-//				// double weightValue = getWeightValue(x, y, sigma);
-//				double weightValue = MathUtils.gaussian(x, y, sigma);
-//
-//				totalWeightValue += weightValue;
-//				gaussTemp.setWeightValue(x, y, weightValue);
-//			}
-//		}
-		
+
 		for (int x = -radius; x <= radius; x++) {
 			for (int y = -radius; y <= radius; y++) {
 				// double weightValue = getWeightValue(x, y, sigma);
@@ -43,64 +40,81 @@ public class ImageGaussConverter implements IImageGaussConverter {
 				gaussTemp.setWeightValue(x, y, weightValue);
 			}
 		}
-		
-		
-		// 加权平均，使之和等于1
-//		for (int x = 0; x < dimension; x++) {
-//			for (int y = 0; y < dimension; y++) {
-//				double currentValue = gaussTemp.getWeightValue(x, y);
-//				double changedValue = currentValue / totalWeightValue ;
-//				gaussTemp.setWeightValue(x, y, changedValue);
-//			}
-//		}
-//		
-		double td = 0.0;
+
 		for (int x = -radius; x <= radius; x++) {
 			for (int y = -radius; y <= radius; y++) {
 				double currentValue = gaussTemp.getWeightValue(x, y);
-				double changedValue = currentValue / totalWeightValue ;
-				td += changedValue;
+				double changedValue = currentValue / totalWeightValue;
 				gaussTemp.setWeightValue(x, y, changedValue);
 			}
 		}
-		System.out.println(td);
 		return gaussTemp;
 	}
 
-	@Override
-	public IImage buildGaussImg(IGaussTemplate gaussTemp, IImage src, IImage dist) {
-		int width = src.getWidth();
-		int height = src.getHeight();
-		for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				int rgb = gaussRGB(x, y, gaussTemp, src);
 
-				dist.setRGB(x, y, rgb);
+//	@Override
+//	public IImage buildGaussImg(IImage src, IImage dist, double sigma) {
+//		IGaussTemplate gaussTemp = buildTemplate(sigma);
+//		return buildGaussImg(gaussTemp, src, dist);
+//	}
+
+	@Override
+	public BigPyramid buildGaussPyramid(IGaussPyramid gaussPyramid) {
+		int octaveCount = gaussPyramid.getOctaveCount();
+		IDogPyramid dogPyramid = new DogPyramid();
+//		System.out.println(gaussPyramid);
+		for (int i = 0; i < octaveCount; i++) {
+			IGaussOctave gaussOctave = (IGaussOctave) gaussPyramid.get(i);
+			
+			IDogOctave dogOctave = new DogOctave(gaussOctave.getWidth(), gaussOctave.getHeight());
+			
+			buildGaussOctave(gaussOctave, dogOctave);
+			
+			dogPyramid.add(i, dogOctave);
+		}
+		return new BigPyramid(gaussPyramid, dogPyramid);
+	}
+
+	private void buildGaussOctave(IGaussOctave gaussOctave, IDogOctave dogOctave) {
+		int count = gaussOctave.getImgCount();
+		IImage srcImg = gaussOctave.getSrcImg();
+		int width = srcImg.getWidth();
+		int height = srcImg.getHeight();
+		System.out.println(gaussOctave);
+		for (int i = 0; i < count; i++) {// 每个高斯图片
+			IImageGauss imgGauss = (IImageGauss)gaussOctave.get(i);
+			IImageDog imgDog = null;
+			if(i > 0){
+				imgDog = new ImageDog(width, height);
+				dogOctave.add(i - 1, imgDog);
+			}
+			
+			for (int x = 0; x < width; x++) {
+				for (int y = 0; y < height; y++) {
+					int rgb = calcRGB(imgGauss, srcImg, x, y);
+					imgGauss.setRGB(x, y, rgb);
+					if(imgDog != null){
+						int dogRGB = rgb - gaussOctave.get(i - 1).getRGB(x, y);
+						imgDog.setRGB(x, y, dogRGB);
+					}
+				}
 			}
 		}
-		return dist;
 	}
-	
-	private int gaussRGB(int x, int y, IGaussTemplate gaussTemp, IImage sourceImage) {
-		IImageGaussBuff imgGaussBuff = (IImageGaussBuff)sourceImage;
-		
+
+	private int calcRGB(IImageGauss imgGauss, IImage srcImg, int x, int y) {
+		// System.out.println(imgGauss + " --- " + x + ":" + y);
+		IGaussTemplate gaussTemp = imgGauss.getTemplate();
+		int width = imgGauss.getWidth();
+		int height = imgGauss.getHeight();
+
 		int radius = gaussTemp.getRadius();
-		int width = sourceImage.getWidth();
-		int height = sourceImage.getHeight();
 
 		int startX = x - radius;
-		// startX = startX > 0 ? startX : x;
 		int startY = y - radius;
-		// startY = startY > 0 ? startY : y;
 
 		int endX = x + radius;
-		// endX = endX > width ? width : endX;
 		int endY = y + radius;
-		// endY = endY > height ? height : endY;
-
-		// if(startX < 0 || startY < 0 || endX > width || endY > height){
-		// return sourceImage.getRGB(x, y);
-		// }
 
 		double rd = 0.0;
 		double gd = 0.0;
@@ -108,70 +122,40 @@ public class ImageGaussConverter implements IImageGaussConverter {
 
 		for (int i = startX; i <= endX; i++) {
 			for (int j = startY; j <= endY; j++) {
-				int ci = i;
-				int cj = j;
-				if(i < 0){
-					ci = -1*i;
-				}
-				if(i >= width){
-					ci = width -(i - width)- 1;
-				}
-				
-				if(j < 0){
-					cj = -1*j;
-				}
-				if(j >= height){
-					cj = height - (j - height)- 1;
-				}
-				ImagePixelGaussBuff pgb = imgGaussBuff.getImagePixelGaussBuff(ci, cj);
+				int currX = getIndex(i, width);
+				int currY = getIndex(j, height);
 
-				int currX = x - ci;
-				int currY = y - cj;
-				
-				RGBBuff rgbBuff = pgb.getRGB(currX, currY);
-				rd += rgbBuff.getR();
-				gd += rgbBuff.getG();
-				bd += rgbBuff.getB();
-				
-//				double weightValue = gaussTemp.getWeightValue(currX, currY);
-//
-//				int currRGB = 0;
-//				try {
-//					currRGB = sourceImage.getRGB(ci, cj);
-//				} catch (Exception e) {
-//					// TODO Auto-generated catch block
-////					e.printStackTrace();
-//				}
-//				int r = currRGB >> 16 & 0xFF;
-//				int g = currRGB >> 8 & 0xFF;
-//				int b = currRGB & 0xFF;
-//
-//				rd += r * weightValue;
-//				gd += g * weightValue;
-//				bd += b * weightValue;
+				int xDistance = x - currX;
+				int yDistance = y - currY;
+				double weightValue = gaussTemp.getWeightValue(xDistance, yDistance);
 
+				int currRGB = srcImg.getRGB(currX, currY);
+
+				int r = currRGB >> 16 & 0xFF;
+				int g = currRGB >> 8 & 0xFF;
+				int b = currRGB & 0xFF;
+
+				rd += r * weightValue;
+				gd += g * weightValue;
+				bd += b * weightValue;
 			}
 		}
-
 		int r = (int) (rd);
 		int g = (int) (gd);
 		int b = (int) (bd);
-		if(x == 50){
-			int old =sourceImage.getRGB(x, y);
-			int oldr = old >> 16 & 0xFF;
-			int oldg = old >> 8 & 0xFF;
-			int oldb = old & 0xFF;
-		}
-		
 		int rgb = r << 16 | g << 8 | b;
+//		imgGauss.setRGB(x, y, rgb);
+		
 		return rgb;
 	}
 
-	@Override
-	public IImage buildGaussImg(IImage src, IImage dist, double sigma) {
-		IGaussTemplate gaussTemp = buildTemplate(sigma);
-		return buildGaussImg(gaussTemp, src, dist);
+	private int getIndex(int index, int maxIndex) {
+		if (index < 0) {
+			index = -1 * index;
+		}
+		if (index >= maxIndex) {
+			index = maxIndex - (index - maxIndex) - 1;
+		}
+		return index;
 	}
-	
-
 }

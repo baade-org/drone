@@ -9,16 +9,11 @@ import java.awt.image.BufferedImage;
  */
 public interface IImage {
 	
-	public void init(BufferedImage bufImg);
-
-	
-	public BufferedImage getBufImg();
+	public BufferedImage getBuffImg();
 	
 	public int getWidth();
 	
 	public int getHeight();
-	
-	public ImageFormat getFormat();
 	
 	public int getRGB(int x, int y);
 	
@@ -26,5 +21,4 @@ public interface IImage {
 	
 	public void wirte(String outDir, int octaveNum, int gaussLevel);
 	
-	public int[][] getDatas();
 }

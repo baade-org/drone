@@ -9,36 +9,16 @@ public class Image implements IImage {
 	private int width;
 	private int height;
 
-	private int[][] datas;
-	
-
 	public Image(BufferedImage bufImg) {
 		if (bufImg != null) {
-			init(bufImg);
+			this.width = bufImg.getWidth();
+			this.height = bufImg.getHeight();
+			this.bufImg = bufImg;
 		}
 	}
 
 	@Override
-	public void init(BufferedImage bufImg) {
-		this.width = bufImg.getWidth();
-		this.height = bufImg.getHeight();
-		datas = new int[this.width][this.height];
-		this.bufImg = new BufferedImage(width, height, bufImg.getType()) ;
-		initDatas(bufImg);
-	}
-
-	private void initDatas(BufferedImage srcBufImg) {
-		for (int x = 0; x < this.width; x++) {
-			for (int y = 0; y < this.height; y++) {
-				int rgb = srcBufImg.getRGB(x, y);
-				datas[x][y] = rgb;
-				this.bufImg.setRGB(x, y, rgb);
-			}
-		}
-	}
-
-	@Override
-	public BufferedImage getBufImg() {
+	public BufferedImage getBuffImg() {
 		return this.bufImg;
 	}
 
@@ -52,11 +32,6 @@ public class Image implements IImage {
 		return this.height;
 	}
 
-	@Override
-	public ImageFormat getFormat() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public int getRGB(int x, int y) {
@@ -93,9 +68,5 @@ public class Image implements IImage {
 		}
 	}
 
-	@Override
-	public int[][] getDatas() {
-		return datas;
-	}
 
 }

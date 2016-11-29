@@ -2,11 +2,10 @@ package org.baade.drone.sift;
 
 import java.io.IOException;
 
-import org.baade.drone.sift.img.IImageTransformer;
-import org.baade.drone.sift.img.ImageTransformer;
-import org.baade.drone.sift.pyramid.GaussPyramidBuilder;
-import org.baade.drone.sift.pyramid.IGaussPyramid;
-import org.baade.drone.sift.pyramid.IGaussPyramidBuilder;
+import org.baade.drone.sift.pyramid.BigPyramid;
+import org.baade.drone.sift.pyramid.IPyramidBuilder;
+import org.baade.drone.sift.pyramid.PyramidBuilder;
+
 
 /**
  * Hello world!
@@ -14,11 +13,11 @@ import org.baade.drone.sift.pyramid.IGaussPyramidBuilder;
  */
 public class App {
 	
-	public static String source="D:\\timg.jpg";
+//	public static String source="D:\\timg.jpg";
 	
 //	public static String source="D:\\d3_default.png";
 	
-//	public static String source="D:\\abcd.jpg";
+	public static String source="D:\\abcd.jpg";
 	
 	
 	public static void main(String[] args) throws IOException {
@@ -28,11 +27,16 @@ public class App {
 //		IGaussPyramid gaussPyramid = imgTran.toGray(source, false);
 //		System.out.println(gaussPyramid);
 		
+		long start = System.currentTimeMillis();
 		
-		IGaussPyramidBuilder gpb = new GaussPyramidBuilder();
-		IGaussPyramid gaussPyramid = gpb.build(source);
-		System.out.println(gaussPyramid);
+		IPyramidBuilder gpb = new PyramidBuilder();
+		BigPyramid bigPyramid = gpb.build(source);
+		System.out.println(bigPyramid);
 		
-		gaussPyramid.wirte("D:/drone/t1");
+		long end = System.currentTimeMillis();
+		System.out.println(end - start); 
+		
+		bigPyramid.getGaussPyramid().wirte("D:/drone/t1/gauss");
+		bigPyramid.getDogPyramid().wirte("D:/drone/t1/dog");
 	}
 }

@@ -30,5 +30,5 @@ public interface Const {
 	 * 单位： 像素<br>
 	 * 这个参数决定了高斯金字塔的塔层数
 	 */
-	public static final int IMG_MIN_WIDTH_OR_HEIGHT_SIZE = 30;
+	public static final int IMG_MIN_WIDTH_OR_HEIGHT_SIZE = 100;
 }
