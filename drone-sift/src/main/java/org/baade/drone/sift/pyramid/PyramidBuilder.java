@@ -39,8 +39,10 @@ public class PyramidBuilder implements IPyramidBuilder {
 	@Override
 	public BigPyramid build(IImage src) {
 		IGaussPyramid gaussPyramid = new GaussPyramid(src);
-		IImage doubleImg = zoomConverter.convert(src);
-		doubleImg = grayConverter.convert(doubleImg, doubleImg);
+//		IImage doubleImg = zoomConverter.convert(src);
+//		doubleImg = grayConverter.convert(doubleImg, doubleImg);
+//		IImage doubleImg = zoomConverter.convert(src);
+		IImage doubleImg = grayConverter.convert(src, src);
 		int gaussLevelCount = Const.GAUSS_LEVEL_COUNT + 3;
 
 		int index = 0;
