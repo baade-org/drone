@@ -22,7 +22,7 @@ public interface Const {
 	 */
 	public static final int GAUSS_LEVEL_COUNT = 3;
 	
-	public static final double SIGMA_BASE = 0.5;
+	public static final double SIGMA_BASE = 1.6;
 	
 	
 	/**

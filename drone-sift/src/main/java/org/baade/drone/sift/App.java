@@ -2,12 +2,6 @@ package org.baade.drone.sift;
 
 import java.io.IOException;
 
-import org.baade.drone.sift.feature.FeaturePointFinder;
-import org.baade.drone.sift.feature.IFeaturePointFinder;
-import org.baade.drone.sift.pyramid.BigPyramid;
-import org.baade.drone.sift.pyramid.IPyramidBuilder;
-import org.baade.drone.sift.pyramid.PyramidBuilder;
-import org.baade.drone.sift.pyramid.feature.IFeaturePyramid;
 
 
 /**
@@ -32,18 +26,8 @@ public class App {
 		
 		long start = System.currentTimeMillis();
 		
-		IPyramidBuilder gpb = new PyramidBuilder();
-		BigPyramid bigPyramid = gpb.build(source);
-		System.out.println(bigPyramid);
-		
 		long end = System.currentTimeMillis();
 		System.out.println(end - start); 
 		
-		bigPyramid.getGaussPyramid().wirte("D:/drone/t1/gauss");
-		bigPyramid.getDogPyramid().wirte("D:/drone/t1/dog");
-		
-		IFeaturePointFinder fpf = new FeaturePointFinder();
-		IFeaturePyramid fp = fpf.find(bigPyramid.getDogPyramid());
-		fp.wirte("D:/drone/t1/fp");
 	}
 }
