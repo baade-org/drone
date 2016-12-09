@@ -22,7 +22,7 @@ public interface Const {
 	 */
 	public static final int GAUSS_LEVEL_COUNT = 3;
 	
-	public static final double SIGMA_BASE = 1.6;
+	public static final double SIGMA_BASE = 0.5;
 	
 	
 	/**
@@ -30,5 +30,5 @@ public interface Const {
 	 * 单位： 像素<br>
 	 * 这个参数决定了高斯金字塔的塔层数
 	 */
-	public static final int IMG_MIN_WIDTH_OR_HEIGHT_SIZE = 200;
+	public static final int IMG_MIN_WIDTH_OR_HEIGHT_SIZE = 100;
 }
