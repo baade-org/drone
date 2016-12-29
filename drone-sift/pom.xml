@@ -11,4 +11,13 @@
 		<artifactId>drone-aggregate</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.baade</groupId>
+			<artifactId>drone-gauss</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+	</dependencies>
 </project>

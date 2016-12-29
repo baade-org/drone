@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.baade.drone.gauss.iir.GaussBuilder;
 import org.baade.drone.sift.Const;
 import org.baade.drone.sift.convert.GaussConverter;
 import org.baade.drone.sift.image.IImage;
@@ -31,7 +32,7 @@ public class PyramidBuilder implements IPyramidBuilder {
 			pyramid = new GaussPyramid(octaveCount, src);
 
 			int gaussLevelCount = Const.GAUSS_LEVEL_COUNT + 3;
-
+			
 			IImage currertImg = src;
 			for (int oIndex = 0; oIndex < octaveCount; oIndex++) {
 				IOctave octave = new GaussOctave(gaussLevelCount, oIndex);
@@ -55,11 +56,12 @@ public class PyramidBuilder implements IPyramidBuilder {
 								}
 							}
 						}
-						currertImg = gaussConverter.convert(tmpImg, oIndex, lIndex);
-						octave.addImage(lIndex, currertImg);
+						IImage img = gaussConverter.convert(tmpImg, oIndex, lIndex);
+						octave.addImage(lIndex, img);
+						currertImg = tmpImg;
 					} else {
-						currertImg = gaussConverter.convert(currertImg, oIndex, lIndex);
-						octave.addImage(lIndex, currertImg);
+						IImage img = gaussConverter.convert(currertImg, oIndex, lIndex);
+						octave.addImage(lIndex, img);
 					}
 				}
 
@@ -111,7 +113,9 @@ public class PyramidBuilder implements IPyramidBuilder {
 				IImage dogImg = new Image(width, height, j - 1);
 				for (int x = 0; x < width; x++) {
 					for (int y = 0; y < height; y++) {
-						int rgb = currImg.getRGB(x, y) - upImg.getRGB(x, y);
+						
+						
+						int rgb = getRGB(currImg.getRGB(x, y), upImg.getRGB(x, y));
 						dogImg.setRGB(x, y, rgb);
 					}
 				}
@@ -121,6 +125,18 @@ public class PyramidBuilder implements IPyramidBuilder {
 		}
 
 		return dogPyramid;
+	}
+	
+	private int getRGB(int currRGB, int upRGB){
+		int cr = (currRGB >> 16) & 0xff;
+		int cg = (currRGB >> 8) & 0xff;
+		int cb = currRGB & 0xff;
+		
+		int ur = (upRGB >> 16) & 0xff;
+		int ug = (upRGB >> 8) & 0xff;
+		int ub = upRGB & 0xff;
+		
+		return (cr - ur) << 16 | (cg - ug) << 8 | (cb - ub);
 	}
 
 }
