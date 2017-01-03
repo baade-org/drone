@@ -33,6 +33,7 @@
 		<module>../drone-assets</module>
 		<module>../drone-gauss</module>
 		<module>../drone-sift</module>
+		<module>../drone-surf</module>
 	</modules>
 
 	<properties>
